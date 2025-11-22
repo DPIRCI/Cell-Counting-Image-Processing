@@ -1,132 +1,91 @@
-**🔬 Cell Counting Pipeline – Image Processing Report**
+# Cell Counting Pipeline – Classical Image Processing
 
-This repository contains the implementation and analysis of a multi-step image processing pipeline developed for COMP 4360 – Image Processing, Assignment 1: Object Counting.
-The goal of the project was to detect and count circular cells in the cells.png microscopy image using classical image processing techniques.
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=opencv&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
 
-**🎯 Objectives**
+A complete classical image processing pipeline developed for **COMP 4360 – Image Processing**, Assignment 1: Object Counting.  
+The goal is to accurately detect and count circular cells in the provided microscopy image `cells.png` using only traditional (non-deep-learning) techniques.
 
-The main objective was to design a clear, reproducible workflow to:
+**Final Result → 224 cells counted**
 
-Enhance image contrast
+---
 
-Remove noise
+## Objectives
+- Enhance image contrast
+- Remove noise and artifacts
+- Segment circular cell-like structures
+- Refine binary masks with morphological operations
+- Count cells using connected components analysis
 
-Segment circular cell-like structures
+---
 
-Refine masks using morphological operations
+## Pipeline Steps
 
-Accurately count cells with connected components analysis
+| Step | Technique                              | Purpose                                          | Key Parameters          | Cell Count |
+|------|----------------------------------------|--------------------------------------------------|--------------------------|------------|
+| 1    | Gaussian Blur                          | Reduce high-frequency noise                      | 7×7 kernel               | –          |
+| 2    | Contrast Enhancement                   | Improve global & local contrast                  | γ = 1/1.5                | –          |
+| 3    | Otsu Thresholding + Inversion (NOT)    | Binarization (cells → white)                     | Automatic threshold      | 237        |
+| 4    | Small Morphological Opening            | Remove small noise & tiny particles              | 7×7 rectangular kernel   | 246        |
+| 5    | Hole Filling (Flood Fill)              | Fill internal holes in cells                     | –                        | 246        |
+| 6    | Large Morphological Opening            | Eliminate large artifacts & merged clusters      | 20×20 kernel             | **224**    |
 
-The pipeline was tuned to maximize segmentation accuracy while reducing noise and artifacts.
+**Final cell count: 224**
 
-**🛠️ Methodology: Step-by-Step Pipeline**
+---
 
-The cell-counting pipeline consists of the following sequential operations (implemented in image_process.py and executed via main.py):
+## Cell Count Progression
 
-Step	Technique	Purpose	Key Parameters	Cell Count
-1. Preprocessing	Gaussian Blur	Reduces high-frequency noise and smooths edges	Kernel: 7×7	1 (expected)
-2. Contrast Enhancement	Histogram Equalization, Contrast Stretching, Gamma Correction	Improves global and local contrast	γ = 1/1.5	1 (expected)
-3. Segmentation	Otsu Thresholding + NOT	Converts to binary image; cells become white	—	237
-4. Noise Reduction	Morphological Opening	Removes small particles while preserving cell structure	Kernel: 7×7 rectangle	246
-5. Hole Filling	Flood Fill	Fills internal gaps in detected cells	—	246
-6. Artifact Removal	Large Morphological Opening	Eliminates larger non-cell regions	Kernel: 20×20	224 (final)
-**📊 Results**
+| Step                          | Cell Count | Notes                                           |
+|-------------------------------|------------|-------------------------------------------------|
+| Gaussian Blur                 | –          | Preprocessing only                              |
+| Contrast Enhancement          | –          | Preprocessing only                              |
+| Otsu + NOT                    | 237        | Initial noisy segmentation                      |
+| Small Opening (7×7)           | 246        | Small noise removed, some touching cells split  |
+| Flood Fill                    | 246        | Holes filled, count unchanged                   |
+| Large Opening (20×20)         | **224**    | Large artifacts removed → final clean result   |
 
-Connected Components Analysis was used to count cells after each major step.
-The final count was 224 cells.
+---
 
-**📈 Cell Count Trends**
-Step	Cell Count	Notes
-Gaussian Blur	1	Preprocessing only
-Contrast Enhancement	1	Preprocessing only
-Thresholding (Otsu + NOT)	237	Initial segmentation; noise present
-Opening (7×7)	246	Small noise removed; some touching cells separated
-Flood Fill	246	Filled internal holes; no change in object count
-Large Opening (20×20)	224	Removed large artifacts, reducing false positives
-🔑 Key Findings
-✔️ Strengths
+## Key Findings
 
-Noise Reduction: Combination of Gaussian blur, small opening, and large opening effectively removed most noise.
+**Strengths**
+- Effective noise reduction using multi-scale morphological opening
+- Strong contrast enhancement chain (Histogram Eq → Stretching → Gamma)
+- Highly reproducible and fully explainable pipeline
 
-Contrast Enhancement: Histogram equalization + contrast stretch + gamma correction prepared the image well for thresholding.
+**Challenges**
+- Touching/overlapping cells are counted as one
+- Sensitive to gamma and morphological kernel sizes
+- Large kernel (20×20) risks removing real cells if set too aggressively
 
-Stable Pipeline: Once tuned, the steps produced a clean and interpretable mask.
+---
 
-⚠️ Challenges
+## Future Improvements
+- Watershed or distance-transform-based separation for touching cells
+- Adaptive kernel sizes based on local cell density
+- Automated parameter tuning with ground-truth data
+- Hough Circle Transform as an alternative/complementary method
 
-Parameter Sensitivity:
-Especially gamma correction — values between 1.2–1.5 worked best.
-Very low values (e.g., 0.4) caused severe under-segmentation.
+---
 
-Overlapping Cells:
-Touching or overlapping cells were often counted as a single region.
+## 📁 Project Structure
 
-Large Artifact Removal:
-Required careful balancing: the 20×20 kernel removed artifacts but risked removing real cells if larger.
+```bash
+├── main.py              # Runs the full pipeline & prints cell counts
+├── image_process.py     # All core image processing functions (blur, contrast, threshold, morph, etc.)
+├── visualize.py         # Connected components analysis, bounding boxes & step-by-step visualization
+├── cells.png            # Input microscopy image
+├── output/              # Automatically created → contains all intermediate and final results
+└── README.md            # You're here :)
+```
+---
 
-💡 Recommendations for Future Work
+## 🙏 Acknowledgments
 
-To improve performance and robustness:
+This project was completed as **Assignment 1** for the **COMP 4360 – Image Processing** course at Yaşar University.
 
-🔹 Advanced Segmentation
+Special thanks to our instructor **Dr. Suphi Uçar** for his excellent guidance, clear explanations, and valuable feedback throughout the course.
 
-Implement Watershed segmentation or distance transform-based splitting to separate touching cells.
-
-🔹 Adaptive Morphology
-
-Use adaptive kernel sizes depending on local cell density or estimated cell radius.
-
-🔹 Systematic Parameter Tuning
-
-Perform automated tuning for:
-
-Gamma values
-
-Thresholding techniques
-
-Morphological kernel sizes
-
-against a ground-truth dataset.
-
-📁 Project Structure
-.
-├── main.py                # Controls pipeline execution
-├── image_process.py       # All preprocessing and morphological functions
-├── visualize.py           # Connected components + visualization utilities
-├── cells.png              # Input microscopy image
-└── README.md              # Project documentation
-
-File Responsibilities
-
-image_process.py
-Contains core operations such as:
-
-contrast_stretch
-
-gamma_correct
-
-apply_threshold
-
-flood_fill_holes
-
-morphological operations
-
-visualize.py
-
-Connected components analysis
-
-Drawing bounding boxes
-
-Displaying step-by-step results
-
-main.py
-
-Calls each step
-
-Logs cell counts
-
-Runs the full workflow end-to-end
-
-🎓 Acknowledgments
-
-This work was completed as Assignment 1 for COMP 4360 – Image Processing at Yaşar University.
+If you found this project useful, feel free to give it a ⭐ **star** — it really means a lot!
